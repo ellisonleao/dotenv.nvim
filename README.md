@@ -1,45 +1,46 @@
-# A Neovim Plugin Template
+<div align="center">
+      <h1> <img src="https://i.postimg.cc/HkJsD67j/dotenv.png" width="80px"><br/>dotenv.nvim</h1>
+     </div>
+<p align="center"> 
+      <a href="https://twitter.com/intent/user?screen_name=ellisonleao" target="_blank"><img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/ellisonleao?style=for-the-badge" style="vertical-align:center" ></a>
+      <a href="#"><img alt="Made with Lua" src="https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua" style="vertical-align:center" /></a>
+</p>
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ellisonleao/nvim-plugin-template/default?style=for-the-badge)
-![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
+A minimalist .env support for Neovim (WIP)
 
-A template repository for Neovim plugins.
+# Prerequisites
 
-## Using it
+Neovim 0.7.0+
 
-Via `gh`:
+# Installing
+
+Using `packer`
+
+```lua
+use { "ellisonleao/dotenv.nvim" }
+```
+
+# Basic Usage
+
+
+```lua
+require('dotenv').setup()
+```
+
+# Configuration
+
+Additional settings are:
+
+```lua
+require('dotenv').setup({ 
+  enable_on_load = true -- will load your .env file upon loading a buffer
+})
+```
+
+# Usage
+
+If you prefer to not load the .env file upon opening a file, you can use the user command:
 
 ```
-$ gh repo create my-plugin -p ellisonleao/nvim-plugin-template
-```
-
-Via github web page:
-
-Click on `Use this template`
-
-![](https://docs.github.com/assets/cb-36544/images/help/repository/use-this-template-button.png)
-
-## Features and structure
-
-- 100% Lua
-- Github actions to run tests and check for formatting errors (Stylua)
-- Tests created with [busted](https://olivinelabs.com/busted/) + [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
-
-### Plugin structure
-
-```
-.
-├── lua
-│   ├── plugin_name
-│   │   └── module.lua
-│   └── plugin_name.lua
-├── Makefile
-├── plugin
-│   └── plugin_name.lua
-├── README.md
-├── tests
-│   ├── minimal_vim.vim
-│   └── plugin_name
-│       └── plugin_name_spec.lua
-└── vendor
+:Dotenv
 ```
