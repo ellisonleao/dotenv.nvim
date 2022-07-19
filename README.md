@@ -22,7 +22,6 @@ use { "ellisonleao/dotenv.nvim" }
 
 # Basic Usage
 
-
 ```lua
 require('dotenv').setup()
 ```
@@ -32,15 +31,23 @@ require('dotenv').setup()
 Additional settings are:
 
 ```lua
-require('dotenv').setup({ 
+require('dotenv').setup({
   enable_on_load = true -- will load your .env file upon loading a buffer
 })
 ```
 
 # Usage
 
+## Loading .env
+
 If you prefer to not load the .env file upon opening a file, you can use the user command:
 
 ```
 :Dotenv
+```
+
+## Inspecting an env
+
+```
+:DotenvGet ENV
 ```

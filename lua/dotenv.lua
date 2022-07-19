@@ -15,35 +15,73 @@ local function read_file(path)
   return data
 end
 
-dotenv.setup = function(args)
-  dotenv.config = vim.tbl_extend("force", dotenv.config, args or {})
-
-  vim.api.nvim_create_user_command("Dotenv", dotenv.load, { nargs = 0 })
-
-  if dotenv.config.enable_on_load then
-    vim.api.nvim_create_autocmd("BufReadPost", { pattern = "*", callback = dotenv.load })
+local function parse_data(data)
+  local values = vim.split(data, "\n")
+  local out = {}
+  for _, pair in pairs(values) do
+    pair = vim.trim(pair)
+    if not vim.startswith(pair, "#") and pair ~= "" then
+      local splitted = vim.split(pair, "=")
+      if #splitted > 1 then
+        local key = splitted[1]
+        local v = {}
+        for i = 2, #splitted, 1 do
+          local k = vim.trim(splitted[i])
+          if k ~= "" then
+            table.insert(v, splitted[i])
+          end
+        end
+        if #v > 0 then
+          local value = table.concat(v, "=")
+          value, _ = string.gsub(value, '"', "")
+          vim.env[key] = value
+          out[key] = value
+        end
+      end
+    end
   end
+  return out
 end
 
-dotenv.load = function()
+local function load()
   local path = vim.loop.cwd() .. "/.env"
 
-  -- read file
   local ok, data = pcall(read_file, path)
   if not ok then
     vim.notify(".env file not found", vim.log.levels.ERROR)
     return
   end
 
-  -- parse data
-  local values = vim.split(data, "\n")
-  for _, val in pairs(values) do
-    local splitted = vim.split(val, "=")
-    if #splitted == 2 then
-      vim.env[splitted[1]] = vim.trim(splitted[2])
-    end
-  end
+  parse_data(data)
+end
 
+dotenv.setup = function(args)
+  dotenv.config = vim.tbl_extend("force", dotenv.config, args or {})
+
+  vim.api.nvim_create_user_command("Dotenv", dotenv.load, { nargs = 0 })
+  vim.api.nvim_create_user_command("DotenvGet", function(opts)
+    dotenv.get(opts.fargs)
+  end, { nargs = 1 })
+
+  if dotenv.config.enable_on_load then
+    vim.api.nvim_create_autocmd("BufReadPost", { pattern = "*", callback = dotenv.load })
+  end
+end
+
+dotenv.get = function(arg)
+  if #debug then
+    load()
+  end
+  local var = string.upper(arg[1])
+  if vim.env[var] == nil then
+    vim.notify(arg .. ": not found", vim.log.levels.ERROR)
+    return
+  end
+  print(vim.env[var])
+end
+
+dotenv.load = function()
+  load()
   vim.notify(".env file loaded")
 end
 
