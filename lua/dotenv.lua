@@ -5,7 +5,20 @@ local dotenv = {}
 
 dotenv.config = {
   enable_on_load = false,
+  verbose = false,
 }
+
+local function notify(msg, level)
+  if not dotenv.config.verbose then
+    return
+  end
+
+  if level == nil then
+    level = "INFO"
+  end
+
+  vim.notify(msg, vim.log.levels[level])
+end
 
 local function read_file(path)
   local fd = assert(uv.fs_open(path, "r", 438))
@@ -43,12 +56,15 @@ local function parse_data(data)
   return out
 end
 
-local function load()
-  local path = vim.loop.cwd() .. "/.env"
+local function load(file)
+  local path = file
+  if path == nil then
+    path = vim.loop.cwd() .. "/.env"
+  end
 
   local ok, data = pcall(read_file, path)
   if not ok then
-    vim.notify(".env file not found", vim.log.levels.ERROR)
+    notify(".env file not found", "ERROR")
     return
   end
 
@@ -58,31 +74,41 @@ end
 dotenv.setup = function(args)
   dotenv.config = vim.tbl_extend("force", dotenv.config, args or {})
 
-  vim.api.nvim_create_user_command("Dotenv", dotenv.load, { nargs = 0 })
+  vim.api.nvim_create_user_command("Dotenv", function(opts)
+    dotenv.load(opts)
+  end, { nargs = "?", complete = "file" })
   vim.api.nvim_create_user_command("DotenvGet", function(opts)
     dotenv.get(opts.fargs)
   end, { nargs = 1 })
 
   if dotenv.config.enable_on_load then
-    vim.api.nvim_create_autocmd("BufReadPost", { pattern = "*", callback = dotenv.load })
+    local group = vim.api.nvim_create_augroup("Dotenv", { clear = true })
+    vim.api.nvim_create_autocmd("BufReadPost", { group = group, pattern = "*", callback = dotenv.load })
   end
 end
 
 dotenv.get = function(arg)
-  if #debug then
-    load()
-  end
   local var = string.upper(arg[1])
   if vim.env[var] == nil then
-    vim.notify(arg .. ": not found", vim.log.levels.ERROR)
+    notify(arg .. ": not found", "ERROR")
     return
   end
   print(vim.env[var])
 end
 
-dotenv.load = function()
-  load()
-  vim.notify(".env file loaded")
+dotenv.load = function(opts)
+  local args
+
+  if opts ~= nil then
+    if #opts.fargs > 0 then
+      args = opts.fargs[1]
+    end
+  end
+
+  if load(args) == nil then
+    return
+  end
+  notify(".env file loaded")
 end
 
 return dotenv

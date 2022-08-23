@@ -32,7 +32,8 @@ Additional settings are:
 
 ```lua
 require('dotenv').setup({
-  enable_on_load = true -- will load your .env file upon loading a buffer
+  enable_on_load = true, -- will load your .env file upon loading a buffer
+  verbose = false, -- show error notification if .env file is not found and if .env is loaded
 })
 ```
 
@@ -46,7 +47,13 @@ If you prefer to not load the .env file upon opening a file, you can use the use
 :Dotenv
 ```
 
-## Inspecting an env
+Optionally use a file as param, if the file is not in the current directory
+
+```
+:Dotenv PATH
+```
+
+## Inspecting an env (must load env first)
 
 ```
 :DotenvGet ENV
