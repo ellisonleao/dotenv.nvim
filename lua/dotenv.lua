@@ -1,3 +1,4 @@
+---@diagnostic disable: missing-parameter
 -- main module file
 local uv = vim.loop
 
@@ -56,26 +57,34 @@ local function parse_data(data)
   return out
 end
 
+local function get_env_file()
+  local files = vim.fs.find(".env", { upward = true, type = "file" })
+  if #files == 0 then
+    return
+  end
+  return files[1]
+end
+
 local function load(file)
-  local path = file
-  if path == nil then
-    path = vim.loop.cwd() .. "/.env"
+  if file == nil then
+    file = get_env_file()
   end
 
-  local ok, data = pcall(read_file, path)
+  local ok, data = pcall(read_file, file)
   if not ok then
     notify(".env file not found", "ERROR")
     return
   end
 
   parse_data(data)
+  notify(".env file loaded")
 end
 
 dotenv.setup = function(args)
   dotenv.config = vim.tbl_extend("force", dotenv.config, args or {})
 
   vim.api.nvim_create_user_command("Dotenv", function(opts)
-    dotenv.load(opts)
+    dotenv.command(opts)
   end, { nargs = "?", complete = "file" })
   vim.api.nvim_create_user_command("DotenvGet", function(opts)
     dotenv.get(opts.fargs)
@@ -83,20 +92,24 @@ dotenv.setup = function(args)
 
   if dotenv.config.enable_on_load then
     local group = vim.api.nvim_create_augroup("Dotenv", { clear = true })
-    vim.api.nvim_create_autocmd("BufReadPost", { group = group, pattern = "*", callback = dotenv.load })
+    vim.api.nvim_create_autocmd("BufReadPost", { group = group, pattern = "*", callback = dotenv.autocmd })
   end
 end
 
 dotenv.get = function(arg)
   local var = string.upper(arg[1])
   if vim.env[var] == nil then
-    notify(arg .. ": not found", "ERROR")
+    print(var .. ": not found")
     return
   end
   print(vim.env[var])
 end
 
-dotenv.load = function(opts)
+dotenv.autocmd = function()
+  load()
+end
+
+dotenv.command = function(opts)
   local args
 
   if opts ~= nil then
@@ -105,10 +118,7 @@ dotenv.load = function(opts)
     end
   end
 
-  if load(args) == nil then
-    return
-  end
-  notify(".env file loaded")
+  load(args)
 end
 
 return dotenv
