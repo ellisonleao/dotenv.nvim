@@ -7,6 +7,7 @@ local dotenv = {}
 dotenv.config = {
   enable_on_load = false,
   verbose = false,
+  file_name = ".env",
 }
 
 local function notify(msg, level)
@@ -58,7 +59,7 @@ local function parse_data(data)
 end
 
 local function get_env_file()
-  local files = vim.fs.find(".env", { upward = true, type = "file" })
+  local files = vim.fs.find(dotenv.config.file_name, { upward = true, type = "file" })
   if #files == 0 then
     return
   end
