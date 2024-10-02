@@ -5,6 +5,7 @@ local uv = vim.loop
 local dotenv = {}
 
 dotenv.config = {
+  event = "VimEnter",
   enable_on_load = false,
   verbose = false,
 }
@@ -92,7 +93,7 @@ dotenv.setup = function(args)
 
   if dotenv.config.enable_on_load then
     local group = vim.api.nvim_create_augroup("Dotenv", { clear = true })
-    vim.api.nvim_create_autocmd("BufReadPost", { group = group, pattern = "*", callback = dotenv.autocmd })
+    vim.api.nvim_create_autocmd(dotenv.config.event, { group = group, pattern = "*", callback = dotenv.autocmd })
   end
 end
 
